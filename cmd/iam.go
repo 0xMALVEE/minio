@@ -370,6 +370,10 @@ func (sys *IAMSys) Init(ctx context.Context, objAPI ObjectLayer, etcdClient *etc
 		sys.validateAndAddRolePolicyMappings(ctx, riMap)
 	}
 
+	cache := sys.store.lock()
+	setDefaultCannedPolicies(cache.iamPolicyDocsMap)
+	sys.store.unlock()
+
 	// From AuthN plugin if enabled.
 	if authn := newGlobalAuthNPluginFn(); authn != nil {
 		riMap := authn.GetRoleInfo()
@@ -400,10 +404,6 @@ func (sys *IAMSys) Init(ctx context.Context, objAPI ObjectLayer, etcdClient *etc
 
 		break
 	}
-
-	cache := sys.store.lock()
-	setDefaultCannedPolicies(cache.iamPolicyDocsMap)
-	sys.store.unlock()
 
 	// Load IAM data from storage.
 	for {
